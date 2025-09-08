@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>QTime Advanced — Quantum Timeline Simulator</title>
+<style>
+  * { box-sizing: border-box; }
+  body { 
+    margin: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: linear-gradient(135deg, #0b0b0e 0%, #1a1a22 50%, #0b0b0e 100%); 
+    color: #eee; 
+    overflow-x: hidden;
+  }
+  
+  header { 
+    padding: 20px; 
+    background: rgba(21, 21, 28, 0.9); 
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  
+  h1 { 
+    margin: 0; 
+    font-size: 24px; 
+    font-weight: 300;
+    background: linear-gradient(45deg, #4CAF50, #2196F3, #9C27B0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+  }
+  
+  .subtitle {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 12px;
+    opacity: 0.7;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  
+  main { 
+    display: flex; 
+    height: calc(100vh - 100px); 
+    position: relative;
+  }
+  
+  aside { 
+    width: 320px; 
+    padding: 20px; 
+    background: rgba(26, 26, 34, 0.8); 
+    backdrop-filter: blur(5px);
+    overflow: auto; 
+    border-right: 1px solid #333;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+  }
+  
+  section { 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, transparent 70%);
+  }
+  
+  .control-group {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(42, 42, 51, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .control-group h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4CAF50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .btn { 
+    display: block; 
+    width: 100%; 
+    margin: 8px 0; 
+    padding: 12px 16px; 
+    background: linear-gradient(135deg, #2a2a33 0%, #3a3a43 100%); 
+    color: #fff; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn:hover::before {
+    left: 100%;
+  }
+  
+  .btn:hover { 
+    background: linear-gradient(135deg, #3a3a43 0%, #4a4a53 100%); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  
+  .btn:active { 
+    transform: translateY(0px); 
+  }
+  
+  .btn.quantum { background: linear-gradient(135deg, #F44336 0%, #E91E63 100%); }
+  .btn.temporal { background: linear-gradient(135deg, #2196F3 0%, #3F51B5 100%); }
+  .btn.paradox { background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%); }
+  
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    transition: background 0.3s ease;
+  }
+  
+  .checkbox-item:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+  }
+  
+  .checkbox-item label {
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+  }
+  
+  #log { 
+    font-size: 11px; 
+    font-family: 'Consolas', 'Monaco', monospace;
+    white-space: pre-wrap; 
+    background: rgba(17, 17, 17, 0.8); 
+    padding: 12px; 
+    border-radius: 8px; 
+    height: 200px; 
+    overflow: auto; 
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+  }
+  
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .stat-item {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+  }
+  
+  .stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4CAF50;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  svg { 
+    width: 100%; 
+    height: 100%; 
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
+  }
+  
+  .node { 
+    fill: #eee; 
+    stroke: #fff;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+  }
+  
+  .node.quantum-active {
+    fill: #F44336;
+    stroke: #FF8A80;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 15px #F44336);
+    animation: quantum-pulse 2s infinite;
+  }
+  
+  @keyframes quantum-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+  
+  .label { 
+    fill: #eee; 
+    font-size: 12px; 
+    text-anchor: middle; 
+    font-weight: 500;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+  }
+  
+  .edge { 
+    stroke: #aaa; 
+    stroke-width: 2; 
+    marker-end: url(#arrow); 
+    transition: all 0.3s ease;
+  }
+  
+  .edge.hidden { 
+    opacity: 0.1; 
+    stroke-dasharray: 5,5;
+  }
+  
+  .edge.active { 
+    stroke: #fff; 
+    stroke-width: 4; 
+    filter: drop-shadow(0 0 10px currentColor);
+    animation: energy-flow 1.5s infinite;
+  }
+  
+  @keyframes energy-flow {
+    0% { stroke-dasharray: 0,20; stroke-dashoffset: 0; }
+    100% { stroke-dasharray: 20,0; stroke-dashoffset: 20; }
+  }
+  
+  .quantum-field {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(33, 150, 243, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 60%, rgba(156, 39, 176, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    animation: quantum-shift 10s infinite linear;
+  }
+  
+  @keyframes quantum-shift {
+    0% { transform: rotate(0deg) scale(1); }
+    33% { transform: rotate(120deg) scale(1.1); }
+    66% { transform: rotate(240deg) scale(0.9); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  
+  .timeline-info {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .timeline-info h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #4CAF50;
+  }
+  
+  .timeline-info p {
+    margin: 5px 0;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+<div class="quantum-field"></div>
+
+<header>
+  <h1>QTime Advanced — Quantum Timeline Simulator</h1>
+  <div class="subtitle">Multi-Dimensional Reality Engine</div>
+</header>
+
+<main>
+  <aside>
+    <div class="control-group">
+      <h3>🌌 Quantum Operations</h3>
+      <button id="btn-observe" class="btn quantum">🔭 Observe (Collapse Wave Function)</button>
+      <button id="btn-super" class="btn quantum">🌀 Maintain Superposition</button>
+      <button id="btn-entangle" class="btn quantum">🔗 Quantum Entanglement</button>
+      <button id="btn-tunnel" class="btn quantum">⚡ Quantum Tunneling</button>
+    </div>
+    
+    <div class="control-group">
+      <h3>⏰ Temporal Controls</h3>
+      <button id="btn-reset" class="btn temporal">↺ Reset Timeline</button>
+      <button id="btn-rewind" class="btn temporal">⏪ Temporal Rewind</button>
+      <button id="btn-fastforward" class="btn temporal">⏩ Fast Forward</button>
+      <button id="btn-loop" class="btn temporal">🔄 Create Time Loop</button>
+    </div>
+    
+    <div class="control-group">
+      <h3>🌋 Paradox Generator</h3>
+      <button id="btn-grandfather" class="btn paradox">👴 Grandfather Paradox</button>
+      <button id="btn-bootstrap" class="btn paradox">🥾 Bootstrap Paradox</button>
+      <button id="btn-twin" class="btn paradox">👯 Twin Paradox</button>
+      <button id="btn-predestination" class="btn paradox">🎯 Predestination Paradox</button>
+    </div>
+    
+    <div class="control-group">
+      <h3>🎛️ Timeline Branches</h3>
+      <div class="checkbox-group">
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-merge" class="chk" value="Merge" checked>
+          <label for="chk-merge">Merge</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-split" class="chk" value="Split" checked>
+          <label for="chk-split">Split</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-swap" class="chk" value="Swap" checked>
+          <label for="chk-swap">Swap</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-super" class="chk" value="Superposition" checked>
+          <label for="chk-super">Superposition</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-paradox" class="chk" value="Paradox" checked>
+          <label for="chk-paradox">Paradox</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="chk-loop" class="chk" value="Loop" checked>
+          <label for="chk-loop">Time Loop</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <h3>📊 Quantum Statistics</h3>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-value" id="stat-observations">0</div>
+          <div class="stat-label">Observations</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-paradoxes">0</div>
+          <div class="stat-label">Paradoxes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-probability">100%</div>
+          <div class="stat-label">Coherence</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-entropy">0.00</div>
+          <div class="stat-label">Entropy</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <h3>📡 Quantum Log</h3>
+      <div id="log"></div>
+    </div>
+  </aside>
+  
+  <section>
+    <div class="timeline-info">
+      <h4>Timeline Status</h4>
+      <p id="timeline-state">State: Superposition</p>
+      <p id="timeline-branches">Active Branches: 6</p>
+      <p id="timeline-time">Temporal Displacement: 0.00s</p>
+    </div>
+    
+    <svg viewBox="-400 -250 800 500">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,4 L0,8 z" fill="#aaa"></path>
+        </marker>
+        <marker id="quantum-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L10,5 L0,10 z" fill="#F44336" filter="drop-shadow(0 0 3px #F44336)"></path>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge> 
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      
+      <g id="edges"></g>
+      <g id="nodes"></g>
+      <g id="labels"></g>
+    </svg>
+  </section>
+</main>
+
+<script>
+class QTimeAdvanced {
+  constructor() {
+    this.pos = {
+      "Past": [-350, 0],
+      "You": [-250, 100], 
+      "@vsk2k0725": [-250, -100], 
+      "Meeting": [-50, 0],
+      "Merge": [200, 150], 
+      "Split": [200, 50], 
+      "Swap": [200, -50], 
+      "Superposition": [200, -150],
+      "Paradox": [200, -200],
+      "Loop": [100, 200],
+      "Future_A": [350, 120],
+      "Future_B": [350, 40],
+      "Future_C": [350, -40],
+      "Future_D": [350, -120]
+    };
+    
+    this.edges = [
+      ["Past", "You"], ["Past", "@vsk2k0725"],
+      ["You", "Meeting"], ["@vsk2k0725", "Meeting"],
+      ["Meeting", "Merge"], ["Meeting", "Split"], 
+      ["Meeting", "Swap"], ["Meeting", "Superposition"],
+      ["Meeting", "Paradox"], ["Meeting", "Loop"],
+      ["Merge", "Future_A"], ["Split", "Future_B"],
+      ["Swap", "Future_C"], ["Superposition", "Future_D"],
+      ["Loop", "Meeting"]
+    ];
+    
+    this.stats = {
+      observations: 0,
+      paradoxes: 0,
+      probability: 100,
+      entropy: 0
+    };
+    
+    this.quantumStates = new Set();
+    this.timelineState = 'superposition';
+    this.activeBranches = 6;
+    
+    this.initializeElements();
+    this.setupEventHandlers();
+    this.startQuantumSimulation();
+  }
+  
+  initializeElements() {
+    const svgEdges = document.getElementById("edges");
+    const svgNodes = document.getElementById("nodes");
+    const svgLabels = document.getElementById("labels");
+    
+    this.edgeMap = {};
+    
+    // Create edges
+    this.edges.forEach(([a, b]) => {
+      const [x1, y1] = this.pos[a];
+      const [x2, y2] = this.pos[b];
+      const line = this.createLine(x1, y1, x2, y2);
+      svgEdges.appendChild(line);
+      this.edgeMap[`${a},${b}`] = line;
+    });
+    
+    // Create nodes and labels
+    Object.entries(this.pos).forEach(([node, [x, y]]) => {
+      const circle = this.createCircle(x, y);
+      const label = this.createLabel(x, y, node);
+      svgNodes.appendChild(circle);
+      svgLabels.appendChild(label);
+    });
+    
+    this.logEl = document.getElementById("log");
+  }
+  
+  createCircle(x, y) {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 8);
+    circle.setAttribute("class", "node");
+    return circle;
+  }
+  
+  createLabel(x, y, text) {
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", x);
+    label.setAttribute("y", y + 25);
+    label.setAttribute("class", "label");
+    label.textContent = text;
+    return label;
+  }
+  
+  createLine(x1, y1, x2, y2) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    line.setAttribute("class", "edge");
+    return line;
+  }
+  
+  setupEventHandlers() {
+    // Quantum operations
+    document.getElementById("btn-observe").onclick = () => this.collapse();
+    document.getElementById("btn-super").onclick = () => this.superposition();
+    document.getElementById("btn-entangle").onclick = () => this.entangle();
+    document.getElementById("btn-tunnel").onclick = () => this.quantumTunnel();
+    
+    // Temporal controls
+    document.getElementById("btn-reset").onclick = () => this.reset();
+    document.getElementById("btn-rewind").onclick = () => this.rewind();
+    document.getElementById("btn-fastforward").onclick = () => this.fastForward();
+    document.getElementById("btn-loop").onclick = () => this.createTimeLoop();
+    
+    // Paradox generators
+    document.getElementById("btn-grandfather").onclick = () => this.grandfatherParadox();
+    document.getElementById("btn-bootstrap").onclick = () => this.bootstrapParadox();
+    document.getElementById("btn-twin").onclick = () => this.twinParadox();
+    document.getElementById("btn-predestination").onclick = () => this.predestinationParadox();
+  }
+  
+  log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = type === 'quantum' ? '[QUANTUM]' : 
+                   type === 'paradox' ? '[PARADOX]' : 
+                   type === 'temporal' ? '[TEMPORAL]' : '[INFO]';
+    
+    this.logEl.textContent += `${timestamp} ${prefix} ${message}\n`;
+    this.logEl.scrollTop = this.logEl.scrollHeight;
+  }
+  
+  updateStats() {
+    document.getElementById("stat-observations").textContent = this.stats.observations;
+    document.getElementById("stat-paradoxes").textContent = this.stats.paradoxes;
+    document.getElementById("stat-probability").textContent = `${this.stats.probability}%`;
+    document.getElementById("stat-entropy").textContent = this.stats.entropy.toFixed(2);
+    
+    document.getElementById("timeline-state").textContent = `State: ${this.timelineState}`;
+    document.getElementById("timeline-branches").textContent = `Active Branches: ${this.activeBranches}`;
+  }
+  
+  getActiveOutcomes() {
+    return Array.from(document.querySelectorAll(".chk:checked")).map(c => c.value);
+  }
+  
+  collapse() {
+    const outcomes = this.getActiveOutcomes();
+    if (outcomes.length === 0) {
+      this.log("No outcomes enabled for observation.", 'quantum');
+      return;
+    }
+    
+    // Hide all edges
+    Object.values(this.edgeMap).forEach(edge => {
+      edge.classList.add("hidden");
+      edge.classList.remove("active");
+    });
+    
+    // Select random outcome
+    const selected = outcomes[Math.floor(Math.random() * outcomes.length)];
+    
+    // Show path to selected outcome
+    const pathEdges = ["Past,You", "Past,@vsk2k0725", "You,Meeting", "@vsk2k0725,Meeting", `Meeting,${selected}`];
+    
+    pathEdges.forEach(key => {
+      if (this.edgeMap[key]) {
+        this.edgeMap[key].classList.remove("hidden");
+        this.edgeMap[key].classList.add("active");
+        this.edgeMap[key].setAttribute("marker-end", "url(#quantum-arrow)");
+      }
+    });
+    
+    // Add quantum glow to nodes
+    this.addQuantumGlow(["Meeting", selected]);
+    
+    this.stats.observations++;
+    this.stats.probability = Math.max(10, this.stats.probability - 15);
+    this.stats.entropy += 0.23;
+    this.timelineState = 'collapsed';
+    this.activeBranches = 1;
+    
+    this.log(`Wave function collapsed! Observed outcome: ${selected}`, 'quantum');
+    this.updateStats();
+  }
+  
+  superposition() {
+    Object.values(this.edgeMap).forEach(edge => {
+      edge.classList.remove("hidden", "active");
+      edge.setAttribute("marker-end", "url(#arrow)");
+    });
+    
+    this.removeQuantumGlow();
+    this.stats.probability = Math.min(100, this.stats.probability + 10);
+    this.timelineState = 'superposition';
+    this.activeBranches = this.getActiveOutcomes().length;
+    
+    this.log("Quantum superposition maintained across all timelines.", 'quantum');
+    this.updateStats();
+  }
+  
+  entangle() {
+    const outcomes = this.getActiveOutcomes();
+    if (outcomes.length < 2) {
+      this.log("Need at least 2 branches for quantum entanglement.", 'quantum');
+      return;
+    }
+    
+    const entangled = outcomes.slice(0, 2);
+    this.quantumStates.add(`entangled:${entangled.join('|')}`);
+    
+    entangled.forEach(outcome => {
+      const key = `Meeting,${outcome}`;
+      if (this.edgeMap[key]) {
+        this.edgeMap[key].style.stroke = '#E91E63';
+        this.edgeMap[key].style.strokeWidth = '3';
+        this.edgeMap[key].style.animation = 'energy-flow 0.8s infinite';
+      }
+    });
+    
+    this.log(`Quantum entanglement established between ${entangled.join(' and ')}.`, 'quantum');
+  }
+  
+  quantumTunnel() {
+    this.log("Initiating quantum tunneling through probability barriers...", 'quantum');
+    
+    // Create temporary impossible path
+    const impossibleEdge = this.edgeMap["You,Future_A"];
+    if (impossibleEdge) {
+      impossibleEdge.style.stroke = '#9C27B0';
+      impossibleEdge.style.strokeDasharray = '10,5';
+      impossibleEdge.style.animation = 'energy-flow 0.5s infinite';
+      
+      setTimeout(() => {
+        impossibleEdge.style = '';
+        this.log("Quantum tunnel collapsed. Reality restored.", 'quantum');
+      }, 3000);
+    }
+    
+    this.stats.entropy += 0.45;
+    this.updateStats();
+  }
+  
+  reset() {
+    Object.values(this.edgeMap).forEach(edge => {
+      edge.classList.remove("hidden", "active");
+      edge.style = '';
+      edge.setAttribute("marker-end", "url(#arrow)");
+    });
+    
+    this.removeQuantumGlow();
+    this.quantumStates.clear();
+    
+    this.stats.probability = 100;
+    this.stats.entropy = 0;
+    this.timelineState = 'superposition';
+    this.activeBranches = this.getActiveOutcomes().length;
+    
+    this.log("Timeline reset to initial quantum state.", 'temporal');
+    this.updateStats();
+  }
+  
+  rewind() {
+    this.log("Initiating temporal rewind sequence...", 'temporal');
+    this.stats.entropy = Math.max(0, this.stats.entropy - 0.1);
+    this.updateStats();
+  }
+  
+  fastForward() {
+    this.log("Fast-forwarding through quantum possibilities...", 'temporal');
+    this.stats.entropy += 0.05;
+    this.updateStats();
+  }
+  
+  createTimeLoop() {
+    const loopEdge = this.edgeMap["Loop,Meeting"];
+    if (loopEdge) {
+      loopEdge.style.stroke = '#FF9800';
+      loopEdge.style.strokeWidth = '4';
+      loopEdge.style.animation = 'energy-flow 2s infinite reverse';
+    }
+    
+    this.log("Temporal loop established. Causality compromised.", 'temporal');
+    this.stats.paradoxes++;
+    this.updateStats();
+  }
+  
+  grandfatherParadox() {
+    this.log("GRANDFATHER PARADOX DETECTED: Attempting to prevent own existence...", 'paradox');
+    this.stats.paradoxes++;
+    this.stats.probability = Math.max(0, this.stats.probability - 30);
+    this.stats.entropy += 0.8;
+    this.updateStats();
+  }
+  
+  bootstrapParadox() {
+    this.log("BOOTSTRAP PARADOX: Information exists without origin point.", 'paradox');
+    this.stats.paradoxes++;
+    this.stats.entropy += 0.6;
+    this.updateStats();
+  }
+  
+  twinParadox() {
+    this.log("TWIN PARADOX: Relativistic time dilation effects observed.", 'paradox');
+    this.stats.paradoxes++;
+    this.updateStats();
+  }
+  
+  predestinationParadox() {
+    this.log("PREDESTINATION PARADOX: Effect precedes cause.", 'paradox');
+    this.stats.paradoxes++;
+    this.stats.entropy += 0.7;
+    this.updateStats();
+  }
+  
+  addQuantumGlow(nodeNames) {
+    nodeNames.forEach(name => {
+      const [x, y] = this.pos[name] || [0, 0];
+      const nodes = document.querySelectorAll('.node');
+      nodes.forEach(node => {
+        const cx = parseFloat(node.getAttribute('cx'));
+        const cy = parseFloat(node.getAttribute('cy'));
+        if (Math.abs(cx - x) < 5 && Math.abs(cy - y) < 5) {
+          node.classList.add('quantum-active');
+        }
+      });
+    });
+  }
+  
+  removeQuantumGlow() {
+    document.querySelectorAll('.node').forEach(node => {
+      node.classList.remove('quantum-active');
+    });
+  }
+  
+  startQuantumSimulation() {
+    setInterval(() => {
+      // Simulate quantum fluctuations
+      if (Math.random() < 0.1) {
+        this.stats.entropy += Math.random() * 0.01;
+        this.updateStats();
+      }
+      
+      // Update temporal displacement
+      const displacement = (Date.now() % 10000) / 1000;
+      document.getElementById("timeline-time").textContent = 
+        `Temporal Displacement: ${displacement.toFixed(2)}s`;
+        
+    }, 100);
+  }
+}
+
+// Initialize QTime Advanced
+document.addEventListener('DOMContentLoaded', () => {
+  new QTimeAdvanced();
+});
+</script>
+</body>
+</html>
